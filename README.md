@@ -13,10 +13,8 @@ also comes with instructions for coding agents (`AGENTS.md`).
 
 ## Start a new paper
 
-Clone the template and push it to a new repository of your own. This keeps
-the template's history, so you can pull template updates later.
-`<template-url>` is wherever this template lives: a GitHub URL or a local
-path.
+Clone the template and push it to a new (private) repository of your own. This keeps
+the template's history, so you can pull template updates later (if needed).
 
 ```bash
 git clone <template-url> my-paper
@@ -217,3 +215,21 @@ notice.
 The template is MIT-licensed; see `LICENSE`. A paper started from the
 template inherits that file, so replace it if your paper needs a different
 license.
+
+## AI usage disclaimer
+
+This template was built with generative AI. Claude Opus 5.5 (Anthropic,
+October 2026), running in Claude Code, wrote most of it under the direction
+of Ufuk Çakır:
+
+- the build script, `Snakefile`, showyourwork fix, and CI workflows, adapted
+  from the setup of the JaxWildfire DMLR 2026 paper, which Fable 5 (August
+  2026) helped to build
+- the example paper and its figure scripts
+- this README, `AGENTS.md`, and the guides in `docs/agents/`
+
+The bibliography entries come from official sources, not from the model:
+the projects' citation files, the Snakemake docs and DOI record, and, for
+Tectonic and uv (which have no paper), their own descriptions and the pinned
+versions. Every commit with AI-written changes names Claude as
+co-author.
