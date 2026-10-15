@@ -1,0 +1,72 @@
+# Copier template for a reproducible paper. https://copier.readthedocs.io
+#
+#   New paper:      uvx copier copy <template-url> my-paper
+#   Get updates:    uvx copier update      (run inside the paper repository)
+#
+# The paper itself lives in template/. Everything outside it (this file, the
+# README, the CI that tests the template) belongs to the template repository.
+
+_min_copier_version: "9.6.0"
+_subdirectory: template
+
+# Jinja uses [[ ]] and [% %] here, so the braces of LaTeX and the ${{ }} of
+# GitHub workflows are never read as template code. Only files ending in
+# .jinja are rendered; all others are copied as they are.
+_envops:
+  block_start_string: "[%"
+  block_end_string: "%]"
+  variable_start_string: "[["
+  variable_end_string: "]]"
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  keep_trailing_newline: true
+
+# The paper's own files are written once, by `copier copy`. `copier update`
+# never touches them, so a template update changes only the build tooling,
+# the CI, and the agent guides.
+_exclude:
+  - "__pycache__"
+  - "*.py[co]"
+  - ".DS_Store"
+  - |
+    [% if _copier_operation == "update" -%]
+    README.md
+    Snakefile
+    src/tex/ms.tex
+    src/tex/bib.bib
+    src/scripts/walkers.py
+    src/scripts/simulate.py
+    src/scripts/spread.py
+    src/scripts/results.py
+    src/data/
+    src/static/
+    [%- endif %]
+
+paper_title:
+  type: str
+  help: Title of the paper
+  default: A Reproducible Paper
+
+author_name:
+  type: str
+  help: Your name, as it appears on the paper
+  validator: "[% if not author_name.strip() %]Enter a name.[% endif %]"
+
+repo_name:
+  type: str
+  help: Name of the git repository
+  default: "[[ _copier_conf.dst_path | basename ]]"
+  validator: >-
+    [% if not (repo_name | regex_search('^[A-Za-z0-9._-]+$')) %]Use letters,
+    digits, '.', '_' and '-' only.[% endif %]
+
+_message_after_copy: |
+  Created "[[ paper_title ]]" in [[ _copier_conf.dst_path ]].
+
+  Next steps:
+    cd [[ _copier_conf.dst_path ]]
+    git init -b main && git add -A && git commit -m "Start [[ repo_name ]]"
+    ./build.sh
+    gh repo create [[ repo_name ]] --private --source . --push
+
+  README.md explains the layout. AGENTS.md is the guide for coding agents.

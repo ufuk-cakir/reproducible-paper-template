@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
 """Build report for build.sh. Owned by the template.
 
 build.sh uses it twice:

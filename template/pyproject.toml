@@ -1,5 +1,5 @@
 [project]
-name = "reproducible-paper"
+name = "paper"
 version = "0.1.0"
 description = "Reproducible paper: every figure and number is rebuilt from code"
 requires-python = ">=3.11,<3.14"

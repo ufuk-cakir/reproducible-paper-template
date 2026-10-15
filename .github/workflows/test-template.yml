@@ -1,0 +1,103 @@
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
+# Test the template: generate a paper from this commit with Copier and build
+# it the way a paper's own CI does. The built PDF is uploaded as an artifact.
+name: test template
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Generate and build a test paper
+    steps:
+      - name: Choose where the test paper goes
+        run: echo "PAPER=${RUNNER_TEMP}/test-paper" >> "${GITHUB_ENV}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Copier reads the template's git history.
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          # Same uv as template/pyproject.toml pins.
+          version: "0.12.24"
+          enable-cache: true
+          cache-dependency-glob: template/uv.lock
+
+      - name: Generate the test paper
+        # --vcs-ref HEAD: this commit, not the newest tag.
+        run: |
+          uvx copier@9.19.1 copy --vcs-ref HEAD --defaults \
+            --data author_name="Template CI" --data repo_name=test-paper . "${PAPER}"
+
+      - name: Make it a git repository
+        # showyourwork needs one, and stamps the PDF with its commit.
+        working-directory: ${{ env.PAPER }}
+        run: |
+          git init -q -b main
+          git add -A
+          git -c user.name=ci -c user.email=ci@example.com commit -q -m "Test paper"
+
+      - name: Restore the Tectonic binary
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/tectonic
+          key: tectonic-bin-${{ runner.os }}-${{ runner.arch }}-0.17.0-gnu
+
+      - name: Install Tectonic
+        # The glibc build, as in the paper's own CI: the musl builds crash on
+        # this runner. Keep the version in sync with template/build.sh.
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/tectonic"
+          if [[ ! -x "${RUNNER_TEMP}/tectonic/tectonic" ]]; then
+            curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-gnu.tar.gz" \
+              | tar -xz -C "${RUNNER_TEMP}/tectonic" tectonic
+          fi
+          echo "${RUNNER_TEMP}/tectonic" >> "${GITHUB_PATH}"
+
+      - name: Find the Tectonic bundle cache
+        id: tectonic-bundle
+        run: echo "dir=$(tectonic -X show user-cache-dir)" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore the Tectonic bundle
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.tectonic-bundle.outputs.dir }}
+          key: tectonic-bundle-${{ runner.os }}-${{ runner.arch }}-0.17.0-v1
+
+      - name: Build the test paper
+        # Tectonic downloads TeX packages from a relay that sometimes
+        # rate-limits CI. Retry only that failure.
+        working-directory: ${{ env.PAPER }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if ./build.sh; then
+              exit 0
+            fi
+            if (( attempt == 3 )) || ! grep -Eq "HTTP response code 429|failure fetching" .showyourwork/build.log; then
+              exit 1
+            fi
+            echo "Tectonic bundle relay was rate-limited. Retrying in $((attempt * 30))s."
+            sleep $((attempt * 30))
+          done
+
+      - name: Upload the test paper
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-paper-${{ github.sha }}
+          path: |
+            ${{ env.PAPER }}/ms.pdf
+            ${{ env.PAPER }}/.showyourwork/build.log
+          if-no-files-found: warn

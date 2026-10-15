@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
 # Owned by the template. Build the paper on every push to main and publish the
 # PDF to the `pdf` branch, where GitHub shows it in the browser:
 #

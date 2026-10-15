@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
 # Owned by the template. Build the paper for every pull request, publish the
 # PDF to a `pdf-pr-<N>` branch, and keep one comment on the PR with its link.
 # cleanup-pr-pdf-branch.yml deletes the branch when the PR closes.

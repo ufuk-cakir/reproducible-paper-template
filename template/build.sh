@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
+#
 # Build the paper with the same pinned toolchain as CI.
 #
 # Usage:
@@ -90,7 +93,7 @@ step() {
   rm -f "${output}"
 }
 
-NAME="$(sed -n 's/^name = "\(.*\)"$/\1/p' pyproject.toml | head -n 1)"
+NAME="$(basename "${PWD}")"
 CORES="${BUILD_CORES:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
 RESULTS="cached results"
 if [[ "${PAPER_REGENERATE}" == "true" ]]; then

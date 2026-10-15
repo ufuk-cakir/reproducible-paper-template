@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Ufuk Çakır
+# SPDX-License-Identifier: MIT
 # Owned by the template. Delete a PR's pdf-pr-<N> branch once the PR closes,
 # merged or not.
 name: cleanup PR PDF branch

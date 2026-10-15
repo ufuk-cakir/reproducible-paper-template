@@ -17,9 +17,9 @@ scripts whose inputs changed and compiles `ms.pdf`.
   overwrites the committed results in `src/data/`.
 - Do not edit template-owned files: `build.sh`, `build_report.py`,
   `showyourwork-fixes.smk`, `environment.yml`, `.github/workflows/`, and
-  `docs/agents/`. Template
-  updates replace them. Put paper-specific instructions under "This paper"
-  below.
+  `docs/agents/`. Template updates (`uvx copier update`, run only when the
+  user asks) replace them. Never edit `.copier-answers.yml`. Put
+  paper-specific instructions under "This paper" below.
 - Add Python packages with `uv add <package>`, which updates `pyproject.toml`
   and `uv.lock`. Do not use pip.
 - Software that a result depends on must be cited. When you add a package,
