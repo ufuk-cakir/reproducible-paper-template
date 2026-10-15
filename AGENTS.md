@@ -15,8 +15,9 @@ scripts whose inputs changed and compiles `ms.pdf`.
   and `ms.tex` reads it with `\variable{}` or `\input{}`.
 - Never run `./build.sh --regenerate` unless the user asks. It recomputes and
   overwrites the committed results in `src/data/`.
-- Do not edit template-owned files: `build.sh`, `showyourwork-fixes.smk`,
-  `environment.yml`, `.github/workflows/`, and `docs/agents/`. Template
+- Do not edit template-owned files: `build.sh`, `build_report.py`,
+  `showyourwork-fixes.smk`, `environment.yml`, `.github/workflows/`, and
+  `docs/agents/`. Template
   updates replace them. Put paper-specific instructions under "This paper"
   below.
 - Add Python packages with `uv add <package>`, which updates `pyproject.toml`

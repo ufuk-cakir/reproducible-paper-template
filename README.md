@@ -51,8 +51,15 @@ seconds. You do not need a TeX installation or conda.
 ```bash
 ./build.sh src/tex/figures/spread.pdf   # build one figure
 ./build.sh --regenerate                 # recompute cached results in src/data/
-./build.sh --dry-run --verbose          # show what would run, and why
+./build.sh --dry-run                    # list what would run, and why
+./build.sh --verbose                    # print the raw showyourwork log
 ```
+
+The terminal shows each figure, rule, and LaTeX pass as it finishes, with a
+live progress line below. When a step fails, it prints only the lines that
+explain why: your script's traceback, or the LaTeX error and its line. After
+a successful build it lists undefined references and citations. The full log
+is in `.showyourwork/build.log`.
 
 ## How it works
 
@@ -117,6 +124,7 @@ Hand-drawn figures go in `src/static/` and are copied in as they are.
 ├── AGENTS.md                instructions for coding agents
 ├── README.md
 ├── build.sh                 build command
+├── build_report.py          progress report and error summary for build.sh
 ├── Snakefile                rules that showyourwork cannot infer
 ├── showyourwork.yml         showyourwork settings: \input dependencies
 ├── showyourwork-fixes.smk   template fixes for Snakemake 9
@@ -142,7 +150,7 @@ git merge template/main
 ```
 
 The template changes only these files, so a merge rarely conflicts:
-`build.sh`, `showyourwork-fixes.smk`, `environment.yml`,
+`build.sh`, `build_report.py`, `showyourwork-fixes.smk`, `environment.yml`,
 `.github/workflows/`, `docs/agents/`, and the top part of `AGENTS.md`.
 `pyproject.toml` and `uv.lock` are shared: if they conflict, keep both sets
 of dependencies in `pyproject.toml`, then run `uv lock` and commit.
@@ -212,24 +220,18 @@ notice.
 
 ## License
 
-The template is MIT-licensed; see `LICENSE`. A paper started from the
-template inherits that file, so replace it if your paper needs a different
-license.
+The template is MIT-licensed; see `LICENSE`.
 
 ## AI usage disclaimer
 
-This template was built with generative AI. Claude Opus 5.5 (Anthropic,
+This template was built with generative AI. Claude Opus 5.5 Extra (Anthropic,
 October 2026), running in Claude Code, wrote most of it under the direction
 of Ufuk Çakır:
 
 - the build script, `Snakefile`, showyourwork fix, and CI workflows, adapted
-  from the setup of the JaxWildfire DMLR 2026 paper, which Fable 5 (August
-  2026) helped to build
+  from the setup of the JaxWildfire DMLR 2026 paper, which Fable 5 (August 2026) helped to build
 - the example paper and its figure scripts
 - this README, `AGENTS.md`, and the guides in `docs/agents/`
 
-The bibliography entries come from official sources, not from the model:
-the projects' citation files, the Snakemake docs and DOI record, and, for
-Tectonic and uv (which have no paper), their own descriptions and the pinned
-versions. Every commit with AI-written changes names Claude as
-co-author.
+Every commit with AI-written changes names Claude as
+co-author for full transparency. Use at your own risk.

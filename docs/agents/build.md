@@ -5,14 +5,19 @@
 ```bash
 ./build.sh                             # build ms.pdf
 ./build.sh src/tex/figures/<name>.pdf  # build one file
-./build.sh --dry-run --verbose         # list the jobs that would run, and why
+./build.sh --dry-run                   # list the jobs that would run, and why
+./build.sh --verbose                   # print the raw showyourwork log
 ./build.sh --regenerate                # recompute cached results (ask first)
 ```
 
 `build.sh` installs the pinned uv and Tectonic into `.cache/` if needed,
-syncs `.venv/` from `uv.lock`, and runs `showyourwork build`. The full log of
-the last run is `.showyourwork/build.log`. The first build downloads the TeX
-packages, so it takes a few minutes; later builds take seconds.
+syncs `.venv/` from `uv.lock`, and runs `showyourwork build`.
+`build_report.py` turns the log into one line per finished step. On failure it
+prints the lines that explain the error; on success it lists undefined
+references and citations. The full log of the last run is
+`.showyourwork/build.log`. The first build downloads the TeX packages, so it
+takes a few minutes. After that, a build with no changes takes about 5
+seconds, and one changed figure about 10.
 
 ## What a build does
 
@@ -26,15 +31,15 @@ packages, so it takes a few minutes; later builds take seconds.
 4. **Compile.** Tectonic compiles `ms.pdf` with links from each figure to its
    script at the current commit, and a stamp with the commit hash.
 
-Every build recompiles the LaTeX (a few seconds), even with no changes. This
-comes from a fix in `showyourwork-fixes.smk`. Figure scripts rerun only when
-needed.
+`showyourwork-fixes.smk` fixes two problems of the pinned showyourwork under
+Snakemake 9: changed inputs that never reached the PDF, and a dependency walk
+that made a no-change build take about 50 seconds.
 
 ## Errors
 
 | Message | Cause | Fix |
 | --- | --- | --- |
-| A Python traceback, then `Error in rule ...` | The script failed | Fix the script; rerun its target |
+| `✗ figure ... failed` or `✗ rule ... failed`, then a Python traceback | The script failed | Fix the script; rerun its target |
 | ``LaTeX Error: File `output/<x>.tex' not found`` | Unguarded `\input` of a generated file | Use `\IfFileExists{...}{\input{...}}{}` (see `new-figure.md`) |
 | `Missing input files for rule ...` naming `src/data/...` | A cached result is missing | Restore it from git, or ask about `--regenerate` |
 | `A figure defines a script but has no label` | A figure environment has `\script` but no `\label` | Add a `\label` |
