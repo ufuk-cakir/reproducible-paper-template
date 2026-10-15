@@ -56,6 +56,15 @@ else
 fi
 SPINNER=(⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏)
 
+# showyourwork only runs at the top level of a git repository. Check that
+# first, before any download, and say what to run.
+if [[ "$(git rev-parse --show-toplevel 2>/dev/null)" != "$(pwd -P)" ]]; then
+  printf '%s%s✗ %s is not the top folder of a git repository.%s showyourwork needs one. Run:\n\n' \
+    "${BOLD}" "${RED}" "$(basename "${PWD}")" "${OFF}" >&2
+  printf '    git init -b main && git add -A && git commit -m "Start the paper"\n\n' >&2
+  exit 1
+fi
+
 # ok LABEL DETAIL: print one finished setup step.
 ok() {
   printf '  %s✓%s %-38s %s%s%s\n' "${GREEN}" "${OFF}" "$1" "${DIM}" "$2" "${OFF}"
