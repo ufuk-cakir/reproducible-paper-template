@@ -195,10 +195,8 @@ publish PDFs or change branches.
 
 ## Software, licenses, and citations
 
-The paper cites the software it is built with in its Software section, and
-`src/tex/bib.bib` holds the citation each project asks for. When your
-scripts use another package, cite it there too: look for its
-`CITATION.cff`, its `CITATION.bib`, or the "citing" page of its docs.
+The paper cites the software it is built with in its Software section, and the citations are in
+`src/tex/bib.bib`.
 
 | Software                                           | Role                           | License                | Cited as     |
 | -------------------------------------------------- | ------------------------------ | ---------------------- | ------------ |
@@ -213,3 +211,9 @@ CI also uses `actions/checkout`, `actions/cache`, `actions/upload-artifact`,
 `actions/github-script`, and `astral-sh/setup-uv`, all MIT-licensed.
 `src/tex/showyourwork.sty` is copied from showyourwork and keeps its MIT
 notice.
+
+## License
+
+The template is MIT-licensed; see `LICENSE`. A paper started from the
+template inherits that file, so replace it if your paper needs a different
+license.
