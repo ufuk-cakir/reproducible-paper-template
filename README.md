@@ -12,15 +12,18 @@ with instructions for coding agents (`AGENTS.md`).
 ## Create a paper
 
 ```bash
-uvx copier copy <template-url> my-paper
+uvx copier copy gh:ufuk-cakir/reproducible-paper-template my-paper
 ```
 
 Copier asks for the paper title, your name, and the repository name. It
 writes the paper into `my-paper/` and prints the next steps: make the folder
 a git repository, build it, and push it to a new private GitHub repository.
-`<template-url>` is wherever this template lives: a GitHub URL such as
-`gh:OWNER/reproducible-paper-template`, or the absolute path of a local
-copy. Copier records it, and `copier update` reads it back later.
+Copier records the template URL, and `copier update` reads it back later.
+
+The template repository is private, so ask Ufuk Çakır for read access first.
+Copier fetches it with git: `gh:` uses HTTPS, which works once
+`gh auth login` has set up git credentials. With an SSH key on GitHub, use
+`git@github.com:ufuk-cakir/reproducible-paper-template.git` instead.
 
 `uvx` comes with [uv](https://docs.astral.sh/uv/). Without uv,
 `pipx run copier copy ...` works too.
