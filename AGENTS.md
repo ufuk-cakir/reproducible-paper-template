@@ -21,6 +21,11 @@ scripts whose inputs changed and compiles `ms.pdf`.
   below.
 - Add Python packages with `uv add <package>`, which updates `pyproject.toml`
   and `uv.lock`. Do not use pip.
+- Software that a result depends on must be cited. When you add a package,
+  tell the user and point to the citation its project asks for (its
+  `CITATION.cff`, `CITATION.bib`, or docs). Edit `src/tex/bib.bib` and the
+  Software section of `ms.tex` only if the user agrees, and never write a
+  BibTeX entry from memory.
 - After a change, build and look at the result: read the page of `ms.pdf`
   that holds the figure, not only the build exit code.
 

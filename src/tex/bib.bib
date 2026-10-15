@@ -1,3 +1,8 @@
+% Software this paper is built with. Each entry is the citation the project
+% itself asks for (its CITATION.cff, its CITATION.bib, or its docs). Projects
+% without a paper are cited as software at the version this repository pins.
+
+% showyourwork: the preferred citation in its CITATION.cff
 @ARTICLE{Luger2021,
        author = { {Luger}, Rodrigo and {Bedell}, Megan and {Foreman-Mackey}, Daniel and {Crossfield}, Ian J.~M. and {Zhao}, Lily L. and {Hogg}, David W.},
         title = "{Mapping stellar surfaces III: An Efficient, Scalable, and Open-Source Doppler Imaging Model}",
@@ -12,4 +17,70 @@ archivePrefix = {arXiv},
  primaryClass = {astro-ph.SR},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv211006271L},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+% Snakemake: the article its docs ask for (docs/project_info/citations.rst),
+% with metadata from the DOI registry
+@article{Molder2021,
+  title     = {Sustainable data analysis with {Snakemake}},
+  author    = {M{\"o}lder, Felix and Jablonski, Kim Philipp and Letcher, Brice and Hall, Michael B. and Tomkins-Tinch, Christopher H. and Sochat, Vanessa and Forster, Jan and Lee, Soohyun and Twardziok, Sven O. and Kanitz, Alexander and Wilm, Andreas and Holtgrewe, Manuel and Rahmann, Sven and Nahnsen, Sven and K{\"o}ster, Johannes},
+  journal   = {F1000Research},
+  volume    = {10},
+  pages     = {33},
+  year      = {2021},
+  publisher = {F1000 Research Ltd},
+  doi       = {10.12688/f1000research.29032.1}
+}
+
+% NumPy: its CITATION.bib
+@article{Harris2020,
+  author  = {Harris, Charles R. and Millman, K. Jarrod and
+             van der Walt, St{\'e}fan J. and Gommers, Ralf and
+             Virtanen, Pauli and Cournapeau, David and
+             Wieser, Eric and Taylor, Julian and Berg, Sebastian and
+             Smith, Nathaniel J. and Kern, Robert and Picus, Matti and
+             Hoyer, Stephan and van Kerkwijk, Marten H. and
+             Brett, Matthew and Haldane, Allan and
+             Fern{\'a}ndez del R{\'\i}o, Jaime and Wiebe, Mark and
+             Peterson, Pearu and G{\'e}rard-Marchant, Pierre and
+             Sheppard, Kevin and Reddy, Tyler and Weckesser, Warren and
+             Abbasi, Hameer and Gohlke, Christoph and
+             Oliphant, Travis E.},
+  title   = {Array programming with {NumPy}},
+  journal = {Nature},
+  year    = {2020},
+  volume  = {585},
+  pages   = {357--362},
+  doi     = {10.1038/s41586-020-2649-2}
+}
+
+% Matplotlib: its CITATION.bib
+@article{Hunter2007,
+  author    = {Hunter, J. D.},
+  title     = {Matplotlib: A {2D} graphics environment},
+  journal   = {Computing in Science \& Engineering},
+  volume    = {9},
+  number    = {3},
+  pages     = {90--95},
+  publisher = {IEEE COMPUTER SOC},
+  doi       = {10.1109/MCSE.2007.55},
+  year      = {2007}
+}
+
+% Tectonic: no paper, so cited as software at the pinned version
+@misc{Tectonic,
+  author = {{The Tectonic Project}},
+  title  = {Tectonic: A modernized, complete, self-contained {TeX}/{LaTeX} engine},
+  year   = {2026},
+  note   = {Version 0.17.0},
+  url    = {https://tectonic-typesetting.github.io}
+}
+
+% uv: no paper, so cited as software at the pinned version
+@misc{uv,
+  author = {{Astral Software Inc.}},
+  title  = {uv: An extremely fast {Python} package and project manager, written in {Rust}},
+  year   = {2026},
+  note   = {Version 0.12.24},
+  url    = {https://github.com/astral-sh/uv}
 }
