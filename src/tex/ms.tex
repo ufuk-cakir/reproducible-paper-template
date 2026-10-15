@@ -1,0 +1,77 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage[tableposition=top]{caption}
+\usepackage{graphicx}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+% Keep this package last. It adds the margin link from each figure to the
+% script that made it, and the commit stamp.
+\usepackage{showyourwork}
+
+\title{A Reproducible Paper}
+\author{Your Name}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  Every figure, number, and table in this paper is rebuilt from code by
+  \texttt{./build.sh}. The icon next to each figure caption links to the
+  script that made the figure, at the commit that built this PDF. Replace
+  this text with your paper.
+\end{abstract}
+
+\section{How this paper is built}
+
+This paper uses showyourwork \citep{Luger2021}. A figure is never a file you
+drop into the repository: it is the output of a script in
+\texttt{src/scripts/}, and the build runs that script whenever the script or
+its data change.
+
+Figure~\ref{fig:walkers} is the simplest case. Its figure environment
+contains \verb|\script{walkers.py}|, and showyourwork infers the rest.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/walkers.pdf}
+  \caption{Five random walks of 200 steps.}
+  \label{fig:walkers}
+  \script{walkers.py}
+\end{figure}
+
+Figure~\ref{fig:spread} comes from a cached result. This is an expensive
+run whose output file is committed to the repository and recomputed only by
+\texttt{./build.sh --regenerate}. The script that plots it reads that file,
+so the \texttt{Snakefile} lists the file as an input of the figure.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.6\linewidth]{figures/spread.pdf}
+  \caption{Mean squared displacement of 10\,000 random walkers. The dashed
+    line is the theory, $\langle x_t^2 \rangle = t$.}
+  \label{fig:spread}
+  \script{spread.py}
+\end{figure}
+
+Numbers in the text come from code too. A linear fit to
+Figure~\ref{fig:spread} has slope \variable{output/slope.txt}, and
+Table~\ref{tab:results} lists the values at three steps. Both files are
+written by \texttt{src/scripts/results.py}.
+
+\begin{table}[h]
+  \centering
+  \caption{Mean squared displacement at three steps.}
+  \label{tab:results}
+  % showyourwork compiles ms.tex once before any script runs. A missing
+  % \input is fatal there, so guard every \input of a generated file.
+  \IfFileExists{output/results_table.tex}{\input{output/results_table.tex}}{}
+\end{table}
+
+\bibliography{bib}
+
+\end{document}

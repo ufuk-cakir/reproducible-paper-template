@@ -1,0 +1,38 @@
+# showyourwork / Snakemake working state
+.snakemake/
+.showyourwork/
+
+# Build products at the repository root. CI publishes ms.pdf to the `pdf`
+# branch; never commit it to main.
+/ms.pdf
+/ms.synctex.gz
+/dag.pdf
+/report.html
+/arxiv.tar.gz
+
+# Generated figures and numbers are ignored by the .gitignore files inside
+# src/tex/figures/ and src/tex/output/. The build rebuilds them from
+# src/scripts/; committing them defeats the point.
+
+# Tool cache: the pinned uv and Tectonic that build.sh downloads
+/.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/
+
+# LaTeX temporaries (showyourwork builds out of tree; this is a safety net)
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# OS noise
+.DS_Store

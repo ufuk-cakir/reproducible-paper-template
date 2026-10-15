@@ -1,0 +1,10 @@
+# Compatibility stub. Do not edit and do not use.
+#
+# showyourwork attaches this file to every rule even with --no-conda, and
+# Snakemake records its checksum, so it must exist. It is never activated:
+# uv manages the environment, and pyproject.toml plus uv.lock are the source
+# of truth.
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11

@@ -1,0 +1,42 @@
+# showyourwork configuration. Reference: https://show-your.work/en/latest/config/
+
+# The manuscript is src/tex/ms.tex; the build writes ./ms.pdf.
+ms_name: ms
+
+# Files that ms.tex pulls in with \input. showyourwork finds \script and
+# \variable on its own, but not \input, so list every generated or split-out
+# .tex file here. Without an entry, editing that file does not rebuild the PDF.
+dependencies:
+  src/tex/ms.tex:
+    - src/tex/output/results_table.tex
+
+# No Zenodo deposition. Expensive results are committed to src/data/ instead
+# (see docs/agents/cached-results.md).
+cache_on_zenodo: false
+optimize_caching: false
+run_cache_rules_on_ci: false
+datasets: {}
+
+# Fail when a file that ms.tex needs has no rule that makes it.
+require_inputs: true
+
+# Run figure scripts with the Python on PATH. build.sh puts .venv/bin first.
+scripts:
+  py: python {script}
+
+# Stamp the PDF with the git commit that built it.
+stamp:
+  enabled: true
+  angle: -20.0
+  size: 0.75
+  xpos: 0.50
+  ypos: 0.50
+  url:
+    enabled: true
+    maxlen: 40
+
+synctex: true
+tectonic_args: []
+verbose: false
+
+version: 0.4.4.dev415+g5bb47a7e1

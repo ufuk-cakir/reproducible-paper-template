@@ -1,0 +1,20 @@
+[project]
+name = "showyourwork-paper"
+version = "0.1.0"
+description = "Reproducible paper: every figure and number is rebuilt from code"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  # Pinned to a commit: this showyourwork works with Snakemake 9 and Tectonic
+  # 0.17. Change it only together with build.sh and the CI workflows.
+  "showyourwork @ git+https://github.com/showyourwork/showyourwork@5bb47a7e16055166bb923f7aa6aa2a5eff2bc2b4",
+  # Packages the figure scripts import. Add yours with `uv add <package>`.
+  "matplotlib>=3.9",
+  "numpy>=2.0",
+]
+
+[tool.uv]
+# The project is a paper, not an installable package.
+package = false
+# build.sh and CI both use exactly this uv, so every machine resolves uv.lock
+# the same way.
+required-version = "==0.12.24"

@@ -1,0 +1,151 @@
+# Owned by the template. Build the paper for every pull request, publish the
+# PDF to a `pdf-pr-<N>` branch, and keep one comment on the PR with its link.
+# cleanup-pr-pdf-branch.yml deletes the branch when the PR closes.
+name: build article (pull request)
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build the article PDF
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency:
+      group: "showyourwork-pr-${{ github.ref }}"
+      cancel-in-progress: true
+    # A PR from a fork gets a read-only token, so it can build but not publish.
+    env:
+      CAN_PUBLISH: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            pyproject.toml
+
+      - name: Restore the locked Python environment
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('uv.lock', 'pyproject.toml', '.python-version') }}
+
+      - name: Restore the Tectonic binary
+        uses: actions/cache@v4
+        with:
+          path: .cache/tectonic-ci
+          key: tectonic-bin-${{ runner.os }}-${{ runner.arch }}-0.17.0-gnu
+
+      - name: Install Tectonic
+        # glibc build, not musl: see build.yml.
+        run: |
+          set -euo pipefail
+          mkdir -p .cache/tectonic-ci
+          if [[ ! -x .cache/tectonic-ci/tectonic ]]; then
+            curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-gnu.tar.gz" \
+              | tar -xz -C .cache/tectonic-ci tectonic
+          fi
+          echo "${GITHUB_WORKSPACE}/.cache/tectonic-ci" >> "${GITHUB_PATH}"
+          "${GITHUB_WORKSPACE}/.cache/tectonic-ci/tectonic" --version
+
+      - name: Find the Tectonic bundle cache
+        id: tectonic-bundle
+        run: echo "dir=$(tectonic -X show user-cache-dir)" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore the Tectonic bundle
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.tectonic-bundle.outputs.dir }}
+          key: tectonic-bundle-${{ runner.os }}-${{ runner.arch }}-0.17.0-v1
+
+      - name: Build the article
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if ./build.sh; then
+              exit 0
+            fi
+            if (( attempt == 3 )) || ! grep -Eq "HTTP response code 429|failure fetching" .showyourwork/build.log; then
+              exit 1
+            fi
+            echo "Tectonic bundle relay was rate-limited. Retrying in $((attempt * 30))s."
+            sleep $((attempt * 30))
+          done
+
+      - name: Upload paper artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-pr-${{ github.event.pull_request.number || github.sha }}
+          path: ms.pdf
+
+      - name: Publish the PDF to the pdf-pr branch
+        if: env.CAN_PUBLISH == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PDF_BRANCH: pdf-pr-${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          cp ms.pdf "$workdir/ms.pdf"
+          cd "$workdir"
+          git init -q -b "$PDF_BRANCH"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ms.pdf
+          git commit -q -m "Build ${GITHUB_SHA} of PR #${{ github.event.pull_request.number }}"
+          git push -q --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$PDF_BRANCH"
+          echo "Published to https://github.com/${GITHUB_REPOSITORY}/blob/${PDF_BRANCH}/ms.pdf"
+
+      # One comment per PR, updated in place on every push.
+      - name: Comment the PDF preview link on the PR
+        if: env.CAN_PUBLISH == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = "<!-- pdf-preview-comment -->";
+            const prNumber = context.payload.pull_request.number;
+            const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/pdf-pr-${prNumber}/ms.pdf`;
+            const body = `${marker}\n📄 [View the built PDF](${url}) (${context.sha.substring(0, 7)})`;
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.data.find((c) => c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-pr-${{ github.event.pull_request.number || github.sha }}
+          path: |
+            .showyourwork/build.log
+            .showyourwork/**/*.log
+            .showyourwork/logs/**
+          if-no-files-found: warn

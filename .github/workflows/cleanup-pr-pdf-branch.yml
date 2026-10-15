@@ -1,0 +1,23 @@
+# Owned by the template. Delete a PR's pdf-pr-<N> branch once the PR closes,
+# merged or not.
+name: cleanup PR PDF branch
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    name: Delete the PR's pdf-pr branch
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+    steps:
+      - name: Delete pdf-pr-${{ github.event.pull_request.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X DELETE \
+            "repos/${{ github.repository }}/git/refs/heads/pdf-pr-${{ github.event.pull_request.number }}" \
+            || echo "Branch already gone or never published; nothing to delete."

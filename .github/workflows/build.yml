@@ -1,0 +1,131 @@
+# Owned by the template. Build the paper on every push to main and publish the
+# PDF to the `pdf` branch, where GitHub shows it in the browser:
+#
+#   https://github.com/<owner>/<repo>/blob/pdf/ms.pdf
+name: build article
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build the article PDF
+    permissions:
+      # write is needed to push the built PDF to the `pdf` branch.
+      contents: write
+    concurrency:
+      group: "showyourwork-${{ github.ref }}"
+      cancel-in-progress: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # showyourwork stamps the PDF with the git SHA and needs real history.
+          fetch-depth: 0
+
+      - name: Install uv
+        # Installs the `required-version` from pyproject.toml.
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            pyproject.toml
+
+      - name: Restore the locked Python environment
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('uv.lock', 'pyproject.toml', '.python-version') }}
+
+      - name: Restore the Tectonic binary
+        uses: actions/cache@v4
+        with:
+          path: .cache/tectonic-ci
+          key: tectonic-bin-${{ runner.os }}-${{ runner.arch }}-0.17.0-gnu
+
+      - name: Install Tectonic
+        # The glibc build, not the musl build that build.sh downloads on
+        # Linux: both musl builds crash on this runner inside showyourwork's
+        # first LaTeX pass. Keep the version in sync with build.sh.
+        run: |
+          set -euo pipefail
+          mkdir -p .cache/tectonic-ci
+          if [[ ! -x .cache/tectonic-ci/tectonic ]]; then
+            curl -fsSL "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-gnu.tar.gz" \
+              | tar -xz -C .cache/tectonic-ci tectonic
+          fi
+          echo "${GITHUB_WORKSPACE}/.cache/tectonic-ci" >> "${GITHUB_PATH}"
+          "${GITHUB_WORKSPACE}/.cache/tectonic-ci/tectonic" --version
+
+      - name: Find the Tectonic bundle cache
+        id: tectonic-bundle
+        run: echo "dir=$(tectonic -X show user-cache-dir)" >> "${GITHUB_OUTPUT}"
+
+      - name: Restore the Tectonic bundle
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.tectonic-bundle.outputs.dir }}
+          key: tectonic-bundle-${{ runner.os }}-${{ runner.arch }}-0.17.0-v1
+
+      - name: Build the article and arXiv bundle
+        # Tectonic downloads TeX packages from a relay that sometimes
+        # rate-limits CI. Retry only that failure.
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if ./build.sh; then
+              break
+            fi
+            if (( attempt == 3 )) || ! grep -Eq "HTTP response code 429|failure fetching" .showyourwork/build.log; then
+              exit 1
+            fi
+            echo "Tectonic bundle relay was rate-limited. Retrying in $((attempt * 30))s."
+            sleep $((attempt * 30))
+          done
+          uv run --frozen showyourwork tarball --no-conda
+
+      - name: Upload paper artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper-${{ github.sha }}
+          path: |
+            ms.pdf
+            arxiv.tar.gz
+
+      # The `pdf` branch is one orphan commit, force-pushed on every build, so
+      # main's history stays clean and the repository does not grow by one PDF
+      # per push. The commit message names the source commit.
+      - name: Publish the PDF to the pdf branch
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          cp ms.pdf arxiv.tar.gz "$workdir/"
+          cd "$workdir"
+          git init -q -b pdf
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ms.pdf arxiv.tar.gz
+          git commit -q -m "Build ${GITHUB_SHA} of ${GITHUB_REF_NAME}"
+          git push -q --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" pdf
+          echo "Published to https://github.com/${GITHUB_REPOSITORY}/blob/pdf/ms.pdf"
+
+      # On a LaTeX failure the real diagnostics are in .showyourwork/.
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.sha }}
+          path: |
+            .showyourwork/build.log
+            .showyourwork/**/*.log
+            .showyourwork/logs/**
+          if-no-files-found: warn
